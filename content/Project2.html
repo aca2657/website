@@ -1,0 +1,395 @@
+---
+title: "Project 2"
+author: "SDS348 Fall 2019"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+
+
+<div id="angie-auyeung-aca2657" class="section level2">
+<h2>Angie Auyeung; aca2657</h2>
+<ul>
+<li><strong>0. (5 pts)</strong> Introduce your dataset and each of your variables (or just your main variables if you have lots) in a paragraph.</li>
+</ul>
+<pre class="r"><code>Salaries &lt;- read_csv(&quot;~/Salaries.csv&quot;)
+library(&quot;ggplot2&quot;)
+library(tidyverse); library(lmtest)
+library(glmnet)
+library(sandwich)
+library(plotROC)
+salaries&lt;-Salaries%&gt;%select(-X1)</code></pre>
+<p>This dataset contains 7 columns. I took out “X” as a column as it is a counter for how many rows there are and does not contribute to the data. The next column is the rank of the professor indicating whether they are a associate professor, a assistant professor or a professor. The next column is separated into which department they are in. They can either fall under theoretical departments or applied departments. The next column is yrs.since.phd which is the years since they completed their PhD. The next column is yrs.service which is the number of years they have been a professor for. The next column is sex which indicates whether they are female or male. The last column is salary which is how much they make in a 9 month period.</p>
+<ul>
+<li><strong>1. (15 pts)</strong> Perform a MANOVA testing whether any of your numeric variables (or a subset of them, if including them all doesn’t make sense) show a mean difference across levels of one of your categorical variables (3). If they do, perform univariate ANOVAs to find response(s) showing a mean difference across groups (3), and perform post-hoc t tests to find which groups differ (3). Discuss the number of tests you have performed, calculate the probability of at least one type I error (if unadjusted), and adjust the significance level accordingly (bonferroni correction) before discussing significant differences (3). Briefly discuss assumptions and whether or not they are likely to have been met (2).</li>
+</ul>
+<pre class="r"><code>man &lt;- manova(cbind(yrs.service, yrs.since.phd, salary) ~ sex, data = salaries)
+
+summary(man)</code></pre>
+<pre><code>## Df Pillai approx F num Df den Df Pr(&gt;F)
+## sex 1 0.032223 4.3618 3 393 0.004884 **
+## Residuals 395
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1</code></pre>
+<pre class="r"><code>summary.aov(man)</code></pre>
+<pre><code>## Response yrs.service :
+## Df Sum Sq Mean Sq F value Pr(&gt;F)
+## sex 1 1583 1583.27 9.5622 0.002127 **
+## Residuals 395 65403 165.58
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1
+##
+## Response yrs.since.phd :
+## Df Sum Sq Mean Sq F value Pr(&gt;F)
+## sex 1 1456 1455.91 8.9424 0.002961 **
+## Residuals 395 64310 162.81
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1
+##
+## Response salary :
+## Df Sum Sq Mean Sq F value Pr(&gt;F)
+## sex 1 6.9800e+09 6980014930 7.7377 0.005667 **
+## Residuals 395 3.5632e+11 902077538
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1</code></pre>
+<pre class="r"><code>salaries%&gt;%group_by(sex)%&gt;%summarize(mean(yrs.service),mean(yrs.since.phd), mean(salary))</code></pre>
+<pre><code>## # A tibble: 2 x 4
+## sex `mean(yrs.service)` `mean(yrs.since.phd)`
+`mean(salary)`
+## &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1 Female 11.6 16.5 101002.
+## 2 Male 18.3 22.9 115090.</code></pre>
+<pre class="r"><code>pairwise.t.test(salaries$yrs.service,salaries$sex,p.adj=&quot;none&quot;)</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  salaries$yrs.service and salaries$sex 
+## 
+##      Female
+## Male 0.0021
+## 
+## P value adjustment method: none</code></pre>
+<pre class="r"><code>pairwise.t.test(salaries$yrs.since.phd,salaries$sex,p.adj=&quot;none&quot;)</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  salaries$yrs.since.phd and salaries$sex 
+## 
+##      Female
+## Male 0.003 
+## 
+## P value adjustment method: none</code></pre>
+<pre class="r"><code>pairwise.t.test(salaries$salary,salaries$sex,p.adj=&quot;none&quot;)</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  salaries$salary and salaries$sex 
+## 
+##      Female
+## Male 0.0057
+## 
+## P value adjustment method: none</code></pre>
+<pre class="r"><code>1-((1-0.05)^3)</code></pre>
+<pre><code>## [1] 0.142625</code></pre>
+<p>A one-way multivariate analysis of variance (MANOVA) was conducted to determine the effect of the Sex (Male or Female) on three dependent variables (years of service, years since PhD and salary).
+Significant differences were found among both sexes on the three dependent measures with the p value being less than .05 showcasing that it is significant. Univariate analyses of variance (ANOVAs) for each dependent variable were conducted as follow-up tests to the MANOVA. The univariate ANOVAs for Salary, Years since PhD and years of service were all significant and respectively. Post hoc analysis was performed conducting pairwise comparisons. Both sexes were found to
+differ significantly from each other in terms of salary, years of service and years since PhD. The probability of a type 1 error is 0.142625.</p>
+<ul>
+<li><strong>2. (10 pts)</strong> Perform some kind of randomization test on your data (that makes sense). This can be anything you want! State null and alternative hypotheses, perform the test, and interpret the results (7). Create a plot visualizing the null distribution and the test statistic (3).</li>
+</ul>
+<pre class="r"><code>rand_dist&lt;-vector()
+for(i in 1:5000){
+new&lt;-data.frame(salary=sample(salaries$salary),sex=salaries$sex)
+rand_dist[i]&lt;-mean(new[new$sex==&quot;Male&quot;,]$salary)-
+mean(new[new$sex==&quot;Female&quot;,]$salary)}
+
+{hist(rand_dist,main=&quot;&quot;,ylab=&quot;&quot;); abline(v =15691.06
+,col=&quot;red&quot;)}</code></pre>
+<p><img src="/Project2_files/figure-html/unnamed-chunk-2-1.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>rand_dist[i]</code></pre>
+<pre><code>## [1] 271.0041</code></pre>
+<pre class="r"><code>mean(rand_dist&gt; 15691.06)*2 </code></pre>
+<pre><code>## [1] 0.0016</code></pre>
+<pre class="r"><code>t.test(data=salaries,salary~sex)</code></pre>
+<pre><code>##
+## Welch Two Sample t-test
+##
+## data: salary by sex
+## t = -3.1615, df = 50.122, p-value = 0.002664
+## alternative hypothesis: true difference in means is not
+equal to 0
+## 95 percent confidence interval:
+## -23037.916 -5138.102
+## sample estimates:
+## mean in group Female mean in group Male
+## 101002.4 115090.4</code></pre>
+<p>Null hypothesis: mean salary is same between both sexes
+Alternative hypothesis: mean salary is different between the sexes.
+The randomization test showcased a p value of 0.0016 which is less than .05 which indicates that the null hypothesis should be rejected and the mean salary is different between sexes.</p>
+<ul>
+<li><strong>3. (35 pts)</strong> Build a linear regression model predicting one of your response variables from at least 2 other variables, including their interaction. Mean-center any numeric variables involved in the interaction.</li>
+</ul>
+<pre class="r"><code>salaries$yrs.service_c&lt;-salaries$yrs.service-mean(salaries$yrs.service)
+
+salaries$yrs.since.phd_c&lt;-salaries$yrs.since.phd-mean(salaries$yrs.since.phd)
+
+fit&lt;-lm(salary~yrs.since.phd_c*yrs.service_c, data=salaries)
+
+summary(fit)</code></pre>
+<pre><code>##
+## Call:
+## lm(formula = salary ~ yrs.since.phd_c * yrs.service_c,
+data = salaries)
+##
+## Residuals:
+## Min 1Q Median 3Q Max
+## -63823 -17292 -2538 13158 107001
+##
+## Coefficients:
+## Estimate Std. Error t value Pr(&gt;|t|)
+## (Intercept) 123533.470 1698.633 72.725 &lt; 2e-16 ***
+## yrs.since.phd_c 1056.086 242.975 4.346 1.76e-05 ***
+## yrs.service_c 250.528 254.880 0.983 0.326
+## yrs.since.phd_c:yrs.service_c -64.617 7.487 -8.630 &lt;
+2e-16 ***
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1
+##
+## Residual standard error: 25120 on 393 degrees of freedom
+## Multiple R-squared: 0.3177, Adjusted R-squared: 0.3125
+## F-statistic: 60.99 on 3 and 393 DF, p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>new1&lt;-salaries
+new1$yrs.since.phd_c&lt;-mean(salaries$yrs.since.phd_c)
+new1$mean&lt;-predict(fit,new1)
+new1$yrs.since.phd_c&lt;-mean(salaries$yrs.since.phd_c)+sd(salaries$yrs.since.phd_c)
+new1$plus.sd&lt;-predict(fit,new1)
+new1$yrs.since.phd_c&lt;-mean(salaries$yrs.since.phd_c)-sd(salaries$yrs.since.phd_c)
+new1$minus.sd&lt;-predict(fit,new1)
+newint&lt;-new1%&gt;%select(salary,yrs.service_c,mean,plus.sd,minus.sd)%&gt;%gather(yrs.since.phd,value,salary,-yrs.service_c)
+
+mycols&lt;-c(&quot;#619CFF&quot;,&quot;#F8766D&quot;,&quot;#00BA38&quot;)
+names(mycols)&lt;-c(&quot;-1 sd&quot;,&quot;mean&quot;,&quot;+1 sd&quot;)
+mycols=as.factor(mycols)
+
+ggplot(salaries,aes(yrs.service_c,salary),group=mycols)+geom_point()+geom_line(data=new1,aes(y=mean,color=&quot;mean&quot;))+geom_line(data=new1,aes(y=plus.sd,color=&quot;+1 sd&quot;))+geom_line(data=new1,aes(y=minus.sd,color=&quot;-1 sd&quot;))+scale_color_manual(values=mycols)+labs(color=&quot;Years since PhD (cont)&quot;)+theme(legend.position=c(.9,.2))</code></pre>
+<p><img src="/Project2_files/figure-html/unnamed-chunk-3-1.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>resids&lt;-fit$residuals
+ks.test(resids, &quot;pnorm&quot;, mean=0, sd(resids)) </code></pre>
+<pre><code>## 
+##  One-sample Kolmogorov-Smirnov test
+## 
+## data:  resids
+## D = 0.062195, p-value = 0.09271
+## alternative hypothesis: two-sided</code></pre>
+<pre class="r"><code>bptest(fit)</code></pre>
+<pre><code>## 
+##  studentized Breusch-Pagan test
+## 
+## data:  fit
+## BP = 44.85, df = 3, p-value = 9.957e-10</code></pre>
+<pre class="r"><code>coeftest(fit)[,1:2]</code></pre>
+<pre><code>##                                   Estimate  Std. Error
+## (Intercept)                   123533.47023 1698.633174
+## yrs.since.phd_c                 1056.08650  242.975151
+## yrs.service_c                    250.52836  254.880140
+## yrs.since.phd_c:yrs.service_c    -64.61694    7.487103</code></pre>
+<pre class="r"><code>coeftest(fit, vcov = vcovHC(fit))[,1:2]</code></pre>
+<pre><code>##                                   Estimate Std. Error
+## (Intercept)                   123533.47023 1974.96670
+## yrs.since.phd_c                 1056.08650  294.53162
+## yrs.service_c                    250.52836  310.70707
+## yrs.since.phd_c:yrs.service_c    -64.61694   11.01044</code></pre>
+<pre class="r"><code>(sum((salaries$salary-mean(salaries$salary))^2)-sum(fit$residuals^2))/sum((salaries$salary-mean(salaries$salary))^2)</code></pre>
+<pre><code>## [1] 0.3176664</code></pre>
+<pre class="r"><code>fit5&lt;-lm(salary~yrs.since.phd_c+yrs.service_c, data=salaries)
+summary(fit5)</code></pre>
+<pre><code>##
+## Call:
+## lm(formula = salary ~ yrs.since.phd_c + yrs.service_c,
+data = salaries)
+##
+## Residuals:
+## Min 1Q Median 3Q Max
+## -79735 -19823 -2617 15149 106149
+##
+## Coefficients:
+## Estimate Std. Error t value Pr(&gt;|t|)
+## (Intercept) 113706.5 1373.0 82.815 &lt; 2e-16 ***
+## yrs.since.phd_c 1562.9 256.8 6.086 2.75e-09 ***
+## yrs.service_c -629.1 254.5 -2.472 0.0138 *
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1
+##
+## Residual standard error: 27360 on 394 degrees of freedom
+## Multiple R-squared: 0.1883, Adjusted R-squared: 0.1842
+## F-statistic: 45.71 on 2 and 394 DF, p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>fit6&lt;-lm(salary~yrs.since.phd_c, data=salaries)
+summary(fit6)</code></pre>
+<pre><code>##
+## Call:
+## lm(formula = salary ~ yrs.since.phd_c, data = salaries)
+##
+## Residuals:
+## Min 1Q Median 3Q Max
+## -84171 -19432 -2858 16086 102383
+##
+## Coefficients:
+## Estimate Std. Error t value Pr(&gt;|t|)
+## (Intercept) 113706.5 1381.9 82.284 &lt;2e-16 ***
+## yrs.since.phd_c 985.3 107.4 9.177 &lt;2e-16 ***
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1
+##
+## Residual standard error: 27530 on 395 degrees of freedom
+## Multiple R-squared: 0.1758, Adjusted R-squared: 0.1737
+## F-statistic: 84.23 on 1 and 395 DF, p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>anova(fit6,fit5,fit,test=&quot;LRT&quot;)</code></pre>
+<pre><code>## Analysis of Variance Table
+##
+## Model 1: salary ~ yrs.since.phd_c
+## Model 2: salary ~ yrs.since.phd_c + yrs.service_c
+## Model 3: salary ~ yrs.since.phd_c * yrs.service_c
+## Res.Df RSS Df Sum of Sq Pr(&gt;Chi)
+## 1 395 2.9945e+11
+## 2 394 2.9487e+11 1 4.5742e+09 0.007083 **
+## 3 393 2.4789e+11 1 4.6982e+10 &lt; 2.2e-16 ***
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1</code></pre>
+<p>Controlling for years of service, there is a significant effect of years of PhD on salary. For every one year increase in years since PhD, salary increases $1056.086 on average. However, after controlling for years since PhD there is no difference in salary for the years of service. For every year of service and year since PhD, salary decreases by $64.617 (interaction).From the graph, it showcases that it satisfies the linearity assumption as none of the lines are curved. It satisifies the assumption of normality, I performed a Kolmogorov-Smirnov test where the p value was greater than .05 and the null hypothesis is normal. The homoskedasity assumption however was not met because the p value was less than .05 and when the null hypothesis is accepted, it means it is homoskedastic. The robust standard errors are higher than the normal standard errors. The proportion of variation explained by the model is 0.3176664. The regression without interactions showcases that both years since PhD and years of service are significant while the interaction model only showed that years since PhD is significant. Ater running the likelihood test, it showcased the interaction model and non interaction model were both significant, but the interaction model had the best p value.</p>
+<ul>
+<li><strong>4. (5 pts)</strong> Rerun same regression model (with interaction), but this time compute bootstrapped standard errors. Discuss any changes you observe in SEs and p-values using these SEs compared to the original SEs and the robust SEs)</li>
+</ul>
+<pre class="r"><code>samp_distn&lt;-replicate(5000, {
+ boot_dat&lt;-boot_dat&lt;-salaries[sample(nrow(salaries),replace=TRUE),]
+ fit9&lt;-glm(salary ~ yrs.since.phd_c * yrs.service_c, data=boot_dat)
+ coef(fit9)
+ })
+
+samp_distn%&gt;%t%&gt;%as.data.frame%&gt;%summarize_all(sd)</code></pre>
+<pre><code>## (Intercept) yrs.since.phd_c yrs.service_c
+yrs.since.phd_c:yrs.service_c
+## 1 1922.158 286.2033 301.5468 10.41735</code></pre>
+<p>The bootstrapped standard errors were greater than original standard errors but less than robust standard errors.</p>
+<ul>
+<li><strong>5. (40 pts)</strong> Perform a logistic regression predicting a binary categorical variable (if you don’t have one, make/get one) from at least two explanatory variables (interaction not necessary).</li>
+</ul>
+<pre class="r"><code>salaries$mf&lt;-ifelse(salaries$sex==&quot;Female&quot;,1,0)
+
+salaries$salary_c&lt;-salaries$salary-mean(salaries$salary)
+
+fit1&lt;-glm(mf~salary_c+yrs.since.phd_c, data= salaries, family=&quot;binomial&quot;(link=&quot;logit&quot;))
+coeftest(fit1)</code></pre>
+<pre><code>##
+## z test of coefficients:
+##
+## Estimate Std. Error z value Pr(&gt;|z|)
+## (Intercept) -2.3669e+00 1.9227e-01 -12.3102 &lt; 2e-16 ***
+## salary_c -1.2381e-05 7.6107e-06 -1.6268 0.10377
+## yrs.since.phd_c -2.8637e-02 1.6075e-02 -1.7815 0.07483 .
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1</code></pre>
+<pre class="r"><code>exp(coef(fit1))%&gt;%round(3)</code></pre>
+<pre><code>##     (Intercept)        salary_c yrs.since.phd_c 
+##           0.094           1.000           0.972</code></pre>
+<pre class="r"><code>data&lt;-salaries
+data$prob&lt;-predict(fit1, data=salaries, type = &quot;response&quot;)
+table(predict=as.numeric(data$prob&gt;.5),truth=data$mf)%&gt;%addmargins</code></pre>
+<pre><code>##        truth
+## predict   0   1 Sum
+##     0   358  39 397
+##     Sum 358  39 397</code></pre>
+<pre class="r"><code>#Accuracy
+358/397</code></pre>
+<pre><code>## [1] 0.9017632</code></pre>
+<pre class="r"><code>#Sensitivity
+0/39</code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre class="r"><code>#Specificity
+358/358</code></pre>
+<pre><code>## [1] 1</code></pre>
+<pre class="r"><code>#PPV
+0</code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre class="r"><code>data$logit&lt;-predict(fit1,type=&quot;link&quot;)
+data%&gt;%ggplot()+geom_density(aes(logit,color=sex,fill=sex), alpha=.4)+ geom_vline(xintercept=0)+xlab(&quot;predictor (logit)&quot;)</code></pre>
+<p><img src="/Project2_files/figure-html/unnamed-chunk-5-1.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ROCplot &lt;- ggplot(data) + geom_roc(aes(d = mf, m = prob),
+ n.cuts = 0)
+
+ROCplot</code></pre>
+<p><img src="/Project2_files/figure-html/unnamed-chunk-5-2.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>calc_auc(ROCplot)</code></pre>
+<pre><code>##   PANEL group       AUC
+## 1     1    -1 0.6691735</code></pre>
+<pre class="r"><code>class_diag&lt;-function(probs,truth){
+
+tab&lt;-table(factor(probs&gt;.5,levels=c(&quot;FALSE&quot;,&quot;TRUE&quot;)),truth)
+acc=sum(diag(tab))/sum(tab)
+sens=tab[2,2]/colSums(tab)[2]
+spec=tab[1,1]/colSums(tab)[1]
+ppv=tab[2,2]/rowSums(tab)[2]
+
+if(is.numeric(truth)==FALSE &amp; is.logical(truth)==FALSE) truth&lt;-as.numeric(truth)-1
+
+ord&lt;-order(probs, decreasing=TRUE)
+probs &lt;- probs[ord]; truth &lt;- truth[ord]
+
+TPR=cumsum(truth)/max(1,sum(truth)) 
+FPR=cumsum(!truth)/max(1,sum(!truth))
+
+dup&lt;-c(probs[-1]&gt;=probs[-length(probs)], FALSE)
+TPR&lt;-c(0,TPR[!dup],1); FPR&lt;-c(0,FPR[!dup],1)
+
+n &lt;- length(TPR)
+auc&lt;- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n]) )
+
+data.frame(acc,sens,spec,ppv,auc)
+}
+
+
+set.seed(1234)
+k=10
+
+data1&lt;-salaries[sample(nrow(salaries)),]
+folds&lt;-cut(seq(1:nrow(salaries)),breaks=k,labels=F)
+
+diags&lt;-NULL
+for(i in 1:k){
+train&lt;-data1[folds!=i,]
+test&lt;-data1[folds==i,]
+truth&lt;-test$mf
+fit12&lt;- glm(mf~salary_c+rank,data=train,family=binomial(link=&quot;logit&quot;))
+probs&lt;- predict(fit12, newdata=test, type=&quot;response&quot;)
+diags&lt;-rbind(diags,class_diag(probs,truth))}
+
+apply(diags,2,mean)</code></pre>
+<pre><code>##       acc      sens      spec       ppv       auc 
+## 0.9016667 0.0000000 1.0000000       NaN 0.6659604</code></pre>
+<p>Controlling for rank, 1 additional dollar in salary increases odds by a factor of 1.000. Controlling for salary, for every 1 year increase in years since PhD, the odds increase by a factor of .972. The accuracy was .902. The sensitivity was and PPV was 0. Since the sensitivity is the true positive rate which indicates the probability of detecting those that are “1” which is female in this case, this showcases that it is unable to detect which are females. This would make sense that the PPV is also 0 as it is the proportion of those that are “1” who are actually 1 and since it can’t predict those that are “1”, its understandable that both PPV and TPR are both 0. The specificity which is the true negative rate is 1. The auc is .669 which is showcases salary and years since PhD are bad predictors of whether a person is female or male. After the 10-fold CV was performed, the auc is .614, the specificity is 1, the sensitivity is 0, the ppv is N/A and the accuracy is .902.</p>
+<p><strong>6. (10 pts)</strong> Choose one variable you want to predict (can be one you used from before; either binary or continuous) and run a LASSO regression inputting all the rest of your variables as predictors. Choose lambda to give the simplest model whose accuracy is near that of the best (i.e., <code>lambda.1se</code>). Discuss which variables are retained. Perform 10-fold CV using this model: if response in binary, compare model’s out-of-sample accuracy to that of your logistic regression in part 5; if response is numeric, compare the residual standard error (at the bottom of the summary output, aka RMSE): lower is better fit!</p>
+<pre><code>## 10 x 1 sparse Matrix of class &quot;dgCMatrix&quot;
+##                            s0
+## (Intercept)     -6.610833e-01
+## rankAsstProf     .           
+## rankProf        -1.214237e-01
+## yrs.since.phd   -2.626082e-02
+## yrs.service      .           
+## sexMale          .           
+## salary           1.325331e-05
+## yrs.service_c    .           
+## yrs.since.phd_c -1.327569e-02
+## salary_c         2.414605e-06</code></pre>
+<pre><code>##       acc      sens      spec       ppv       auc 
+## 0.9016667 1.0000000 0.0000000 0.9016667        NA</code></pre>
+<p>The variable retained were salary, years since PhD and mean centered years since PhD and salary. The AUC was 0.629. The ppv was 0.9018590. The specificity which is also the true negative rate was 0 and the sensitivity was 1 which is also the true positive rate. This indicates that the proportion of individuals with a 1 actually are individuals with 1 which are all the females. The accuracy was .902. After performing a 10 fold cv, the accuracy from this model was the same in number 5.</p>
+</div>

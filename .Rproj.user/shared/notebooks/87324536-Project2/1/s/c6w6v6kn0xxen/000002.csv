@@ -1,0 +1,271 @@
+"2","Rendering content/Project2.Rmd
+"
+"1","Parsed with column specification:
+"
+"1","cols(
+"
+"1","  X1 = col_double(),
+"
+"1","  rank = col_character(),
+"
+"1","  discipline = col_character(),
+"
+"1","  yrs.since.phd = col_double(),
+"
+"1","  yrs.service = col_double(),
+"
+"1","  sex = col_character(),
+"
+"1","  salary = col_double()
+"
+"1",")
+"
+"1","Loading required package: zoo
+"
+"1","
+"
+"1","Attaching package: 'zoo'
+"
+"1","
+"
+"1","The following objects are masked from 'package:base':
+"
+"1","
+"
+"1","    as.Date, as.Date.numeric
+"
+"1","
+"
+"1","Loading required package: Matrix
+"
+"1","
+"
+"1","Attaching package: 'Matrix'
+"
+"1","
+"
+"1","The following objects are masked from 'package:tidyr':
+"
+"1","
+"
+"1","    expand, pack, unpack
+"
+"1","
+"
+"1","Loaded glmnet 3.0-2
+"
+"1","
+"
+"1","Quitting from lines 254-281 (Project2.Rmd) 
+"
+"1","Error in eval(family$initialize) : y values must be 0 <= y <= 1
+"
+"1","Calls: local ... eval -> glm -> eval -> eval -> glm.fit -> eval -> eval
+"
+"1","In addition: Warning messages:
+"
+"1","1: Missing column names filled in: 'X1' [1] 
+"
+"1","2: In ks.test(resids, ""pnorm"", mean = 0, sd(resids)) :
+"
+"1","  ties should not be present for the Kolmogorov-Smirnov test
+"
+"1","Execution halted
+"
+"1","<"
+"1",""
+"1","simpleError"
+"1",""
+"1"," in "
+"1",""
+"1","render_page(f)"
+"1",""
+"1",": "
+"1",""
+"1","Failed to render 'content/Project2.Rmd'"
+"1",""
+"1",">
+"
+"0","Salaries <- read_csv(""~/Salaries.csv"")"
+"0","library(""ggplot2"")"
+"0","library(tidyverse); library(lmtest)"
+"2","Rendering content/Project2.Rmd
+"
+"1","Parsed with column specification:
+"
+"1","cols(
+"
+"1","  X1 = col_double(),
+"
+"1","  rank = col_character(),
+"
+"1","  discipline = col_character(),
+"
+"1","  yrs.since.phd = col_double(),
+"
+"1","  yrs.service = col_double(),
+"
+"1","  sex = col_character(),
+"
+"1","  salary = col_double()
+"
+"1",")
+"
+"1","Loading required package: zoo
+"
+"1","
+"
+"1","Attaching package: 'zoo'
+"
+"1","
+"
+"1","The following objects are masked from 'package:base':
+"
+"1","
+"
+"1","    as.Date, as.Date.numeric
+"
+"1","
+"
+"1","Loading required package: Matrix
+"
+"1","
+"
+"1","Attaching package: 'Matrix'
+"
+"1","
+"
+"1","The following objects are masked from 'package:tidyr':
+"
+"1","
+"
+"1","    expand, pack, unpack
+"
+"1","
+"
+"1","Loaded glmnet 3.0-2
+"
+"1","
+"
+"1","Quitting from lines 254-281 (Project2.Rmd) 
+"
+"1","Error in eval(family$initialize) : y values must be 0 <= y <= 1
+"
+"1","Calls: local ... eval -> glm -> eval -> eval -> glm.fit -> eval -> eval
+"
+"1","In addition: Warning messages:
+"
+"1","1: Missing column names filled in: 'X1' [1] 
+"
+"1","2: In ks.test(resids, ""pnorm"", mean = 0, sd(resids)) :
+"
+"1","  ties should not be present for the Kolmogorov-Smirnov test
+"
+"1","Execution halted
+"
+"1","<"
+"1",""
+"1","simpleError"
+"1",""
+"1"," in "
+"1",""
+"1","render_page(f)"
+"1",""
+"1",": "
+"1",""
+"1","Failed to render 'content/Project2.Rmd'"
+"1",""
+"1",">
+"
+"0","library(glmnet)"
+"0","library(sandwich)"
+"2","Rendering content/Project2.Rmd
+"
+"1","Parsed with column specification:
+"
+"1","cols(
+"
+"1","  X1 = col_double(),
+"
+"1","  rank = col_character(),
+"
+"1","  discipline = col_character(),
+"
+"1","  yrs.since.phd = col_double(),
+"
+"1","  yrs.service = col_double(),
+"
+"1","  sex = col_character(),
+"
+"1","  salary = col_double()
+"
+"1",")
+"
+"1","Loading required package: zoo
+"
+"1","
+"
+"1","Attaching package: 'zoo'
+"
+"1","
+"
+"1","The following objects are masked from 'package:base':
+"
+"1","
+"
+"1","    as.Date, as.Date.numeric
+"
+"1","
+"
+"1","Loading required package: Matrix
+"
+"1","
+"
+"1","Attaching package: 'Matrix'
+"
+"1","
+"
+"1","The following objects are masked from 'package:tidyr':
+"
+"1","
+"
+"1","    expand, pack, unpack
+"
+"1","
+"
+"1","Loaded glmnet 3.0-2
+"
+"1","
+"
+"1","Quitting from lines 254-281 (Project2.Rmd) 
+"
+"1","Error in eval(family$initialize) : y values must be 0 <= y <= 1
+"
+"1","Calls: local ... eval -> glm -> eval -> eval -> glm.fit -> eval -> eval
+"
+"1","In addition: Warning messages:
+"
+"1","1: Missing column names filled in: 'X1' [1] 
+"
+"1","2: In ks.test(resids, ""pnorm"", mean = 0, sd(resids)) :
+"
+"1","  ties should not be present for the Kolmogorov-Smirnov test
+"
+"1","Execution halted
+"
+"1","<"
+"1",""
+"1","simpleError"
+"1",""
+"1"," in "
+"1",""
+"1","render_page(f)"
+"1",""
+"1",": "
+"1",""
+"1","Failed to render 'content/Project2.Rmd'"
+"1",""
+"1",">
+"
+"0","library(plotROC)"
+"0","salaries<-Salaries%>%select(-X1)"

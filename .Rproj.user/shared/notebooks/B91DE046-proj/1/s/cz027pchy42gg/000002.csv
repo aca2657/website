@@ -1,0 +1,4 @@
+"0","fit71<- glm(discipline~., data = salaries, family = binomial(link = ""logit""))
+"
+"2","Error in eval(family$initialize) : y values must be 0 <= y <= 1
+"

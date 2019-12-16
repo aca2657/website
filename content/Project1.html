@@ -1,0 +1,175 @@
+---
+title: "Project 1"
+author: "SDS348 Fall 2019"
+date: "10/20/2019"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+
+
+<p>The 2 datasets I chose were about arthritis and epilepsy. I am interested in the medical field and have personal experience with both conditions. The arthritis dataset is about those that did a blind trial to see the improvement from a new treatment for arthritis. The epilepsy dataset is similar in that it is testing a anit-epilepsy drug called Progabide, however it is not a blind trial. The patients follow a routine check up to document how many seizures they have had while either being on a placebo or the drug.</p>
+<pre class="r"><code>library(readr)
+epilepsy_1_ &lt;- read_csv(&quot;~/epilepsy (1).csv&quot;)</code></pre>
+<pre><code>## Warning: Missing column names filled in: &#39;X1&#39; [1]</code></pre>
+<pre><code>## Parsed with column specification:
+## cols(
+##   X1 = col_double(),
+##   ID = col_double(),
+##   Y1 = col_double(),
+##   Y2 = col_double(),
+##   Y3 = col_double(),
+##   Y4 = col_double(),
+##   Base = col_double(),
+##   Age = col_double(),
+##   Trt = col_character(),
+##   Ysum = col_double(),
+##   Age10 = col_double(),
+##   Base4 = col_double()
+## )</code></pre>
+<pre class="r"><code>Arthritis &lt;- read_csv(&quot;~/Arthritis.csv&quot;)</code></pre>
+<pre><code>## Warning: Missing column names filled in: &#39;X1&#39; [1]</code></pre>
+<pre><code>## Parsed with column specification:
+## cols(
+##   X1 = col_double(),
+##   ID = col_double(),
+##   Treatment = col_character(),
+##   Sex = col_character(),
+##   Age = col_double(),
+##   Improved = col_character()
+## )</code></pre>
+<pre class="r"><code>library(ggplot2)
+library(tidyverse)</code></pre>
+<pre><code>## -- Attaching packages -------------- tidyverse 1.3.0 --</code></pre>
+<pre><code>## &lt;U+2713&gt; tibble  2.1.3     &lt;U+2713&gt; dplyr   0.8.3
+## &lt;U+2713&gt; tidyr   1.0.0     &lt;U+2713&gt; stringr 1.4.0
+## &lt;U+2713&gt; purrr   0.3.3     &lt;U+2713&gt; forcats 0.4.0</code></pre>
+<pre><code>## -- Conflicts ----------------- tidyverse_conflicts() --
+## x dplyr::filter() masks stats::filter()
+## x dplyr::lag()    masks stats::lag()</code></pre>
+<pre class="r"><code>epilepsy1&lt;-epilepsy_1_%&gt;%select(-X1,-Base4,-Age10,-Age,-Trt)
+arthritis1&lt;-Arthritis%&gt;%select(-X1,-Age,-Treatment)
+arthritis2&lt;-arthritis1%&gt;%mutate(ID= ID*2)
+dat&lt;-arthritis2%&gt;%inner_join(epilepsy1, by=c(&quot;ID&quot;))</code></pre>
+<p>I decided to take out several columns in the epilepsy dataset including Base4 and Age10 which did not add anything to the data, it was just Base/4 and Age/10. I also decided to take out Age and Treatment group because there was an overlap with arthritis that did not match up and led to 0 observations in my data. I was more interested in the improvement and the number of epilepsy attacks. I did a inner join because I didn’t want any NA’s, but regardless of a full or inner join, I had the same outcome because I took out the columns that would result in a lot of NA’s as they had no common variables. I also multiplied the column ID by 2 for arthritis so that there would be ID numbers in common. It did not change the data.</p>
+<pre class="r"><code>h&lt;-dat%&gt;%select(Y1, Base, Ysum)
+cor(h)</code></pre>
+<pre><code>##             Y1      Base      Ysum
+## Y1   1.0000000 0.5151304 0.9217646
+## Base 0.5151304 1.0000000 0.7410814
+## Ysum 0.9217646 0.7410814 1.0000000</code></pre>
+<pre class="r"><code>dat %&gt;% filter(Sex == &quot;Female&quot;) %&gt;% select(Improved, Base) %&gt;% group_by(Improved)%&gt;% summarize(mean = mean(Base),sd = sd(Base), count = n()) %&gt;% mutate(se = sd/sqrt(count))</code></pre>
+<pre><code>## # A tibble: 3 x 5
+##   Improved  mean    sd count    se
+##   &lt;chr&gt;    &lt;dbl&gt; &lt;dbl&gt; &lt;int&gt; &lt;dbl&gt;
+## 1 Marked    26.8 23.4      5 10.5 
+## 2 None      24   19.8      2 14.0 
+## 3 Some      31.3  9.50     3  5.49</code></pre>
+<pre class="r"><code>dat%&gt;%arrange(ID)</code></pre>
+<pre><code>## # A tibble: 14 x 9
+##       ID Sex    Improved    Y1    Y2    Y3    Y4  Base  Ysum
+##    &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+##  1   102 Female None         8     7     9     4    38    28
+##  2   104 Male   None         5     3     3     3    11    14
+##  3   106 Female Marked       3     5     3     3    11    14
+##  4   108 Female None         3     6     1     3    10    13
+##  5   110 Male   None         2     6     7     4    19    19
+##  6   112 Female Some        22    17    19    16    31    74
+##  7   114 Male   Some         4     4     1     4     8    13
+##  8   116 Female Marked       7    18     9    21    66    55
+##  9   118 Female Marked       5     2     8     7    27    22
+## 10   122 Female Some         4    18     2     5    41    29
+## 11   124 Female Marked       2     1     1     0     7     4
+## 12   126 Male   None        40    20    23    12    52    95
+## 13   128 Female Some         0     2     4     0    22     6
+## 14   130 Female Marked       5     6     6     5    23    22</code></pre>
+<pre class="r"><code>dat %&gt;%group_by(Improved) %&gt;%
+  summarise(mean = mean(Ysum), n = n())</code></pre>
+<pre><code>## # A tibble: 3 x 3
+##   Improved  mean     n
+##   &lt;chr&gt;    &lt;dbl&gt; &lt;int&gt;
+## 1 Marked    23.4     5
+## 2 None      33.8     5
+## 3 Some      30.5     4</code></pre>
+<pre class="r"><code>dat %&gt;%group_by(Sex) %&gt;%
+  summarise(mean = mean(Ysum), n = n())</code></pre>
+<pre><code>## # A tibble: 2 x 3
+##   Sex     mean     n
+##   &lt;chr&gt;  &lt;dbl&gt; &lt;int&gt;
+## 1 Female  26.7    10
+## 2 Male    35.2     4</code></pre>
+<pre class="r"><code>dat %&gt;%
+  summarise(mean = mean(Y1), n = n())</code></pre>
+<pre><code>## # A tibble: 1 x 2
+##    mean     n
+##   &lt;dbl&gt; &lt;int&gt;
+## 1  7.86    14</code></pre>
+<pre class="r"><code>dat %&gt;%
+  summarise(mean = mean(Y2), n = n())</code></pre>
+<pre><code>## # A tibble: 1 x 2
+##    mean     n
+##   &lt;dbl&gt; &lt;int&gt;
+## 1  8.21    14</code></pre>
+<pre class="r"><code>dat %&gt;%
+  summarise(mean = mean(Y3), n = n())</code></pre>
+<pre><code>## # A tibble: 1 x 2
+##    mean     n
+##   &lt;dbl&gt; &lt;int&gt;
+## 1  6.86    14</code></pre>
+<pre class="r"><code>dat %&gt;%
+  summarise(mean = mean(Y4), n = n())</code></pre>
+<pre><code>## # A tibble: 1 x 2
+##    mean     n
+##   &lt;dbl&gt; &lt;int&gt;
+## 1  6.21    14</code></pre>
+<pre class="r"><code>dat %&gt;%
+  summarise(mean = mean(Base), n = n())</code></pre>
+<pre><code>## # A tibble: 1 x 2
+##    mean     n
+##   &lt;dbl&gt; &lt;int&gt;
+## 1  26.1    14</code></pre>
+<pre class="r"><code>dat %&gt;%
+  summarise(mean = mean(Ysum), n = n())</code></pre>
+<pre><code>## # A tibble: 1 x 2
+##    mean     n
+##   &lt;dbl&gt; &lt;int&gt;
+## 1  29.1    14</code></pre>
+<p>I also wanted to see if there was a correlation between before and after treatment for epileptic attacks, so I looked at the number of epileptic attacks prior to the 8 week testing period, number of epileptic attacks up till the first follow up and the total number of epileptic attacks after all the follow ups. The result was that if you had a lot of attacks after starting the treatment, up till the first follow up and after the 4 follow ups, you would have a similar amount of attacks. I think this could be because you have already started taking the drug and thus the amount of help it can give a patient is seen in the first follow up and won’t be a drastic change at the end of treatment.
+For summary statistics, I filtered the data for just females as they were the majority. I found the mean, standard deviation, count and standard error for the number of seizures before treament started in the Improved column. The result was that before treatment, those that did not have improvements from treatment had the least amount of seizures, those that had some improvement had the highest amount of seizures in the beginning and those that had improvement had a median between those two groups. The data had the biggest group in those that saw improvements. Those that saw some improvement had the smallest standard error which indicates a small spread between the distribution in the sample.
+I found all the means of the epilepitc seizures after each follow up and before and after treatment. The highest mean was from Ysum which makes sense as over an 8 week period, the number of seizures would accumulate.
+I also grouped by sex and improved to see the mean of seizures after the treatment for each group. The result for improved was that those that had an improvement had the smallest mean and those that had no improvement ahd the largest mean which is logical as an improvement in seizures should correspond with a lower number of seizures. The result of Sex is that females had a smaller mean, however this does not show as much of a relationship as Improved did because they had different counts.</p>
+<pre class="r"><code>p&lt;-dat%&gt;%select_if(is.numeric)%&gt;%scale
+f&lt;-prcomp(p)
+eigval&lt;-f$sdev^2 
+varprop=round(eigval/sum(eigval),2)
+f$rotation</code></pre>
+<pre><code>##            PC1         PC2         PC3         PC4          PC5         PC6
+## ID   0.0880652  0.97818792 -0.04585783  0.10764897 -0.144915773  0.02647811
+## Y1   0.3940326  0.02999495  0.55296113 -0.20465048  0.002437982 -0.61560044
+## Y2   0.4092412 -0.03203685 -0.28247705 -0.68673942 -0.323192890  0.35634779
+## Y3   0.4106845 -0.03100976  0.41625705  0.34477188  0.281931766  0.64192741
+## Y4   0.3907578 -0.18684173 -0.37196211  0.59541915 -0.497466159 -0.18468708
+## Base 0.3810490  0.05681547 -0.52235306 -0.01543806  0.729704018 -0.21451033
+## Ysum 0.4505028 -0.04607495  0.16691106 -0.03590113 -0.122938101 -0.03400683
+##                PC7
+## ID    0.000000e+00
+## Y1   -3.423755e-01
+## Y2   -2.205755e-01
+## Y3   -2.160619e-01
+## Y4   -1.947739e-01
+## Base  2.498002e-16
+## Ysum  8.657401e-01</code></pre>
+<pre class="r"><code>ggplot()+geom_bar(aes(y=varprop,x=1:7),stat=&quot;identity&quot;)+xlab(&quot;&quot;)+geom_path(aes(y=varprop,x=1:7))+
+ geom_text(aes(x=1:7,y=varprop,label=round(varprop,2)),vjust=1,col=&quot;white&quot;,size=5)+
+ scale_y_continuous(breaks=seq(0,.6,.2),labels = scales::percent)+
+ scale_x_continuous(breaks=1:10)</code></pre>
+<p><img src="/Project1_files/figure-html/unnamed-chunk-3-1.png" width="672" />
+From the plot, I found that 69% of the variance is measure by PC1 and 14% is measure by PC2. These are the 2 main Principal Components I will focus on as it makes up &gt;80% of the variance.
+In PC1, Y1, Y2, Y3, Y4, Base and Ysum are all correlated to each other as they have similar numbers. Therefore, the number of seizures before and after treatment are related. The higher the seizures they have in the beginning, the more seizures they have in the end in relation to other participants. PC2, showcase the same argument as almost all of Y1, Y2, Y3, Y4, Base and Ysum are in the negative direction or very small showcasing all of the variables are related. The only unrelated variable is ID because it is an unrelated variable and has nothing to do with the number of seizures a patient would have.</p>
+<pre class="r"><code>dat%&gt;%ggplot(aes(Base,Ysum,color=Improved),stat=&quot;summary&quot;)+geom_point()+ggtitle(&quot;Improvement Before and After Trials&quot;)+theme_dark()</code></pre>
+<p><img src="/Project1_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<pre class="r"><code>dat%&gt;%ggplot(aes(Ysum,Improved,color=Sex))+geom_point()+ggtitle(&quot;After Treatment Improvement by Gender&quot;)+scale_x_continuous(seq(from=0, to=100, by=20),name=&quot;Ysum&quot;)+theme_light()</code></pre>
+<p><img src="/Project1_files/figure-html/unnamed-chunk-4-2.png" width="672" /></p>
+<p>The first plot showcases the relationship between the number of seizures before and after treatment and the indication of improvement or not is marked by color. From the plot, it seems that there is a relationship of those that did not have an improvement and having more seizures after the trial. This makes sense because if they did not improve, that would indicate more seizures. There also seems to be a relationship between the starting number of seizures and the ending, they don’t seem drastically different which also makes sense because even with a drug treatment, it is unlikely that having 60 seizures in a 8 week period would dim down to 20 seizures in 8 weeks.</p>
+<p>The second plot showcases the improvement after the treatment took place centered on the sex of the individual. It seems as though males are less likely to improve than females which could arise from the fact that males are more skeptical of impvoement and tend to not pay as much attention as females do when it comes to health. However, in the data set it does not indicate whether or not improvement is measured by the doctors or individuals.</p>

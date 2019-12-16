@@ -1,0 +1,289 @@
+---
+title: "Project 2"
+author: "SDS348 Fall 2019"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+hook_output = knit_hooks$get('output')
+knit_hooks$set(output = function(x, options) {
+  # this hook is used only when the linewidth option is not NULL
+  if (!is.null(n <- options$linewidth)) {
+    x = knitr:::split_lines(x)
+    # any lines wider than n should be wrapped
+    if (any(nchar(x) > n)) x = strwrap(x, width = n)
+    x = paste(x, collapse = '\n')
+  }
+  hook_output(x, options)
+})
+
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE,fig.align="center",warning=FALSE,message=FALSE,fig.width=8, fig.height=5, linewidth=60)
+options(tibble.width = 100,width = 100)
+library(tidyverse)
+```
+
+## Angie Auyeung; aca2657
+
+- **0. (5 pts)** Introduce your dataset and each of your variables (or just your main variables if you have lots) in a paragraph.
+
+
+```{R}
+Salaries <- read_csv("~/Salaries.csv")
+library("ggplot2")
+library(tidyverse); library(lmtest)
+library(glmnet)
+library(sandwich)
+library(plotROC)
+salaries<-Salaries%>%select(-X1)
+```
+
+This dataset contains 7 columns. I took out "X" as a column as it is a counter for how many rows there are and does not contribute to the data. The next column is the rank of the professor indicating whether they are a associate professor, a assistant professor or a professor. The next column is separated into which department they are in. They can either fall under theoretical departments or applied departments. The next column is yrs.since.phd which is the years since they completed their PhD. The next column is yrs.service which is the number of years they have been a professor for. The next column is sex which indicates whether they are female or male. The last column is salary which is how much they make in a 9 month period. 
+
+- **1. (15 pts)** Perform a MANOVA testing whether any of your numeric variables (or a subset of them, if including them all doesn't make sense) show a mean difference across levels of one of your categorical variables (3). If they do, perform univariate ANOVAs to find response(s) showing a mean difference across groups (3), and perform post-hoc t tests to find which groups differ (3). Discuss the number of tests you have performed, calculate the probability of at least one type I error (if unadjusted), and adjust the significance level accordingly (bonferroni correction) before discussing significant differences (3). Briefly discuss assumptions and whether or not they are likely to have been met (2).
+
+
+```{r cars}
+man <- manova(cbind(yrs.service, yrs.since.phd, salary) ~ sex, data = salaries)
+
+summary(man)
+
+summary.aov(man)
+
+salaries%>%group_by(sex)%>%summarize(mean(yrs.service),mean(yrs.since.phd), mean(salary))
+
+
+pairwise.t.test(salaries$yrs.service,salaries$sex,p.adj="none")
+
+pairwise.t.test(salaries$yrs.since.phd,salaries$sex,p.adj="none")
+
+pairwise.t.test(salaries$salary,salaries$sex,p.adj="none")
+
+1-((1-0.05)^3)
+
+```
+A one-way multivariate analysis of variance (MANOVA) was conducted to determine the effect of the Sex (Male or Female) on three dependent variables (years of service, years since PhD and salary). 
+Significant differences were found among both sexes on the three dependent measures with the p value being less than .05 showcasing that it is significant. Univariate analyses of variance (ANOVAs) for each dependent variable were conducted as follow-up tests to the MANOVA. The univariate ANOVAs for Salary, Years since PhD and years of service were all significant and respectively. Post hoc analysis was performed conducting pairwise comparisons. Both sexes were found to
+differ significantly from each other in terms of salary, years of service and years since PhD. The probability of a type 1 error is 0.142625.
+
+- **2. (10 pts)** Perform some kind of randomization test on your data (that makes sense). This can be anything you want! State null and alternative hypotheses, perform the test, and interpret the results (7). Create a plot visualizing the null distribution and the test statistic (3).
+
+``````{R}
+rand_dist<-vector()
+for(i in 1:5000){
+new<-data.frame(salary=sample(salaries$salary),sex=salaries$sex)
+rand_dist[i]<-mean(new[new$sex=="Male",]$salary)-
+mean(new[new$sex=="Female",]$salary)}
+
+{hist(rand_dist,main="",ylab=""); abline(v =15691.06
+,col="red")}
+
+rand_dist[i]
+
+mean(rand_dist> 15691.06)*2 
+
+t.test(data=salaries,salary~sex)
+
+
+```
+
+Null hypothesis: mean salary is same between both sexes 
+Alternative hypothesis: mean salary is different between the sexes.
+The randomization test showcased a p value of 0.0016 which is less than .05 which indicates that the null hypothesis should be rejected and the mean salary is different between sexes. 
+
+
+- **3. (35 pts)** Build a linear regression model predicting one of your response variables from at least 2 other variables, including their interaction. Mean-center any numeric variables involved in the interaction.
+
+
+```{R}
+
+salaries$yrs.service_c<-salaries$yrs.service-mean(salaries$yrs.service)
+
+salaries$yrs.since.phd_c<-salaries$yrs.since.phd-mean(salaries$yrs.since.phd)
+
+fit<-lm(salary~yrs.since.phd_c*yrs.service_c, data=salaries)
+
+summary(fit)
+
+new1<-salaries
+new1$yrs.since.phd_c<-mean(salaries$yrs.since.phd_c)
+new1$mean<-predict(fit,new1)
+new1$yrs.since.phd_c<-mean(salaries$yrs.since.phd_c)+sd(salaries$yrs.since.phd_c)
+new1$plus.sd<-predict(fit,new1)
+new1$yrs.since.phd_c<-mean(salaries$yrs.since.phd_c)-sd(salaries$yrs.since.phd_c)
+new1$minus.sd<-predict(fit,new1)
+newint<-new1%>%select(salary,yrs.service_c,mean,plus.sd,minus.sd)%>%gather(yrs.since.phd,value,salary,-yrs.service_c)
+
+mycols<-c("#619CFF","#F8766D","#00BA38")
+names(mycols)<-c("-1 sd","mean","+1 sd")
+mycols=as.factor(mycols)
+
+ggplot(salaries,aes(yrs.service_c,salary),group=mycols)+geom_point()+geom_line(data=new1,aes(y=mean,color="mean"))+geom_line(data=new1,aes(y=plus.sd,color="+1 sd"))+geom_line(data=new1,aes(y=minus.sd,color="-1 sd"))+scale_color_manual(values=mycols)+labs(color="Years since PhD (cont)")+theme(legend.position=c(.9,.2))
+
+resids<-fit$residuals
+ks.test(resids, "pnorm", mean=0, sd(resids)) 
+
+bptest(fit)
+
+coeftest(fit)[,1:2]
+coeftest(fit, vcov = vcovHC(fit))[,1:2]
+
+(sum((salaries$salary-mean(salaries$salary))^2)-sum(fit$residuals^2))/sum((salaries$salary-mean(salaries$salary))^2)
+
+fit5<-lm(salary~yrs.since.phd_c+yrs.service_c, data=salaries)
+summary(fit5)
+
+fit6<-lm(salary~yrs.since.phd_c, data=salaries)
+summary(fit6)
+
+anova(fit6,fit5,fit,test="LRT")
+
+```
+
+Controlling for years of service, there is a significant effect of years of PhD on salary. For every one year increase in years since PhD, salary increases $1056.086 on average. However, after controlling for years since PhD there is no difference in salary for the years of service. For every year of service and year since PhD, salary decreases by $64.617 (interaction).From the graph, it showcases that it satisfies the linearity assumption as none of the lines are curved. It satisifies the assumption of normality, I performed a Kolmogorov-Smirnov test where the p value was greater than .05 and the null hypothesis is normal. The homoskedasity assumption however was not met because the p value was less than .05 and when the null hypothesis is accepted, it means it is homoskedastic. The robust standard errors are higher than the normal standard errors. The proportion of variation explained by the model is 0.3176664. The regression without interactions showcases that both years since PhD and years of service are significant while the interaction model only showed that years since PhD is significant. Ater running the likelihood test, it showcased the interaction model and non interaction model were both significant, but the interaction model had the best p value. 
+
+
+- **4. (5 pts)** Rerun same regression model (with interaction), but this time compute bootstrapped standard errors. Discuss any changes you observe in SEs and p-values using these SEs compared to the original SEs and the robust SEs)
+
+```{R}
+
+samp_distn<-replicate(5000, {
+ boot_dat<-boot_dat<-salaries[sample(nrow(salaries),replace=TRUE),]
+ fit9<-glm(salary ~ yrs.since.phd_c * yrs.service_c, data=boot_dat)
+ coef(fit9)
+ })
+
+samp_distn%>%t%>%as.data.frame%>%summarize_all(sd)
+
+```
+
+The bootstrapped standard errors were greater than original standard errors but less than robust standard errors.
+
+
+- **5. (40 pts)** Perform a logistic regression predicting a binary categorical variable (if you don't have one, make/get one) from at least two explanatory variables (interaction not necessary). 
+
+
+```{R}
+salaries$mf<-ifelse(salaries$sex=="Female",1,0)
+
+salaries$salary_c<-salaries$salary-mean(salaries$salary)
+
+fit1<-glm(mf~salary_c+yrs.since.phd_c, data= salaries, family="binomial"(link="logit"))
+coeftest(fit1)
+exp(coef(fit1))%>%round(3)
+
+
+data<-salaries
+data$prob<-predict(fit1, data=salaries, type = "response")
+table(predict=as.numeric(data$prob>.5),truth=data$mf)%>%addmargins
+
+
+#Accuracy
+358/397
+#Sensitivity
+0/39
+#Specificity
+358/358
+
+#PPV
+0
+
+data$logit<-predict(fit1,type="link")
+data%>%ggplot()+geom_density(aes(logit,color=sex,fill=sex), alpha=.4)+ geom_vline(xintercept=0)+xlab("predictor (logit)")
+
+ROCplot <- ggplot(data) + geom_roc(aes(d = mf, m = prob),
+ n.cuts = 0)
+
+ROCplot
+
+calc_auc(ROCplot)
+
+class_diag<-function(probs,truth){
+
+tab<-table(factor(probs>.5,levels=c("FALSE","TRUE")),truth)
+acc=sum(diag(tab))/sum(tab)
+sens=tab[2,2]/colSums(tab)[2]
+spec=tab[1,1]/colSums(tab)[1]
+ppv=tab[2,2]/rowSums(tab)[2]
+
+if(is.numeric(truth)==FALSE & is.logical(truth)==FALSE) truth<-as.numeric(truth)-1
+
+ord<-order(probs, decreasing=TRUE)
+probs <- probs[ord]; truth <- truth[ord]
+
+TPR=cumsum(truth)/max(1,sum(truth)) 
+FPR=cumsum(!truth)/max(1,sum(!truth))
+
+dup<-c(probs[-1]>=probs[-length(probs)], FALSE)
+TPR<-c(0,TPR[!dup],1); FPR<-c(0,FPR[!dup],1)
+
+n <- length(TPR)
+auc<- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n]) )
+
+data.frame(acc,sens,spec,ppv,auc)
+}
+
+
+set.seed(1234)
+k=10
+
+data1<-salaries[sample(nrow(salaries)),]
+folds<-cut(seq(1:nrow(salaries)),breaks=k,labels=F)
+
+diags<-NULL
+for(i in 1:k){
+train<-data1[folds!=i,]
+test<-data1[folds==i,]
+truth<-test$mf
+fit12<- glm(mf~salary_c+rank,data=train,family=binomial(link="logit"))
+probs<- predict(fit12, newdata=test, type="response")
+diags<-rbind(diags,class_diag(probs,truth))}
+
+apply(diags,2,mean)
+
+
+```
+
+Controlling for rank, 1 additional dollar in salary increases odds by a factor of 1.000. Controlling for salary, for every 1 year increase in years since PhD, the odds increase by a factor of .972. The accuracy was .902. The sensitivity was and PPV was 0. Since the sensitivity is the true positive rate which indicates the probability of detecting those that are "1" which is female in this case, this showcases that it is unable to detect which are females. This would make sense that the PPV is also 0 as it is the proportion of those that are "1" who are actually 1 and since it can't predict those that are "1", its understandable that both PPV and TPR are both 0. The specificity which is the true negative rate is 1. The auc is .669 which is showcases salary and years since PhD are bad predictors of whether a person is female or male. After the 10-fold CV was performed, the auc is .614, the specificity is 1, the sensitivity is 0, the ppv is N/A and the accuracy is .902. 
+
+ **6. (10 pts)** Choose one variable you want to predict (can be one you used from before; either binary or continuous) and run a LASSO regression inputting all the rest of your variables as predictors. Choose lambda to give the simplest model whose accuracy is near that of the best (i.e., `lambda.1se`). Discuss which variables are retained. Perform 10-fold CV using this model: if response in binary, compare model's out-of-sample accuracy to that of your logistic regression in part 5; if response is numeric, compare the residual standard error (at the bottom of the summary output, aka RMSE): lower is better fit!
+
+```{r pressure, echo=FALSE}
+salaries<-salaries%>%select(-mf)
+
+salaries$discipline <- as.factor(salaries$discipline)
+
+fit71<- glm(discipline~., data = salaries, family = "binomial"(link="logit"))
+
+x <- model.matrix(fit71)[, -1]
+y<-as.matrix(salaries$discipline)
+cv1<-cv.glmnet(x,y,family="binomial")
+lasso1<-glmnet(x,y,family="binomial",lambda=cv1$lambda.1se)
+coef(lasso1)
+
+set.seed(1234)
+k=10
+
+data2<-salaries[sample(nrow(salaries)),]
+folds2<-cut(seq(1:nrow(salaries)),breaks=k,labels=F)
+
+diags2<-NULL
+for(i in 1:k){
+train2<-data2[folds2!=i,]
+test2<-data2[folds2==i,]
+truth2<-test2$sex
+
+train2$sex <- as.factor(train2$sex)
+
+fit7<- glm(sex~yrs.since.phd+salary+yrs.since.phd_c+salary_c,data=train2,family=binomial(link="logit"))
+probs2<- predict(fit7, newdata=test2, type="response")
+diags2<-rbind(diags2,class_diag(probs2,truth2))}
+
+apply(diags2,2,mean)
+
+```
+The variable retained were salary, years since PhD and  mean centered years since PhD and salary. The AUC was 0.629. The ppv was 0.9018590. The specificity which is also the true negative rate was 0 and the sensitivity was 1 which is also the true positive rate. This indicates that the proportion of individuals with a 1 actually are individuals with 1 which are all the females. The accuracy was .902. After performing a 10 fold cv, the accuracy from this model was the same in number 5.
+ 
+ 

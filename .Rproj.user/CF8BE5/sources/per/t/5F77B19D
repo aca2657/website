@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1576452285681.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1870777106",
+    "id" : "5F77B19D",
+    "lastKnownWriteTime" : 1576452284,
+    "last_content_update" : 1576452360154,
+    "path" : "C:/Users/angie/Downloads/proj.Rmd",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "257,0",
+        "last_setup_crc32" : "3866568956381138",
+        "scrollLine" : "252"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 6,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

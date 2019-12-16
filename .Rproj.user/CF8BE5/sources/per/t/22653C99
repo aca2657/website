@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1576452924145.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2113448063",
+    "id" : "22653C99",
+    "lastKnownWriteTime" : 1576454174,
+    "last_content_update" : 1576454174019,
+    "path" : "~/website 2/content/blog/2019-12-15-hi.Rmd",
+    "project_path" : "content/blog/2019-12-15-hi.Rmd",
+    "properties" : {
+        "cursorPosition" : "9,472",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 8,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

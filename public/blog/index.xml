@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Blogs on Angie auyeung</title>
+    <link>/blog/</link>
+    <description>Recent content in Blogs on Angie auyeung</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language>
+    <lastBuildDate>Sun, 15 Dec 2019 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="/blog/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Travel guide of Austin </title>
+      <link>/blog/2019-12-15-hi/</link>
+      <pubDate>Sun, 15 Dec 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/2019-12-15-hi/</guid>
+      <description>Austin is a vibrant and upcoming city. It has a mulitude of things to do and see. My must-see places for Austin would be Ziler Park, Lady Bird Lake, Barton Springs Pool and Twin Falls. These are all great places to visit especially since Austin is warm most months out of the year. However, since it is almost Christmas, some places I would reccomend visiting are the Trail of Lights, Mozarts Coffee and the Four Seasons(they have a gingerbread village that is beautiful!</description>
+    </item>
+    
+  </channel>
+</rss>
